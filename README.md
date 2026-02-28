@@ -1,17 +1,19 @@
 # Svelte Forms [![npm](https://img.shields.io/npm/v/@aicacia/svelte-forms)](https://www.npmjs.com/package/@aicacia/svelte-forms) [![Web CI](https://github.com/aicacia/svelte-forms/actions/workflows/web.yml/badge.svg)](https://github.com/aicacia/svelte-forms/actions/workflows/web.yml)
 
-Minimal, typed form state + validation for Svelte 5 using Valibot.
+Minimal, typed form state + validation for Svelte 5 using any library that implements the `@standard-schema/spec` interface.
 
 ## Install
 
 ```bash
-pnpm add @aicacia/svelte-forms valibot
+pnpm add @aicacia/svelte-forms <your-validator-library> @standard-schema/spec
 ```
 
 ## Quick Start
 
 ```svelte
 <script lang="ts">
+	// import whatever schema builder you prefer. it must implement
+	// @standard-schema/spec (valibot, zod, etc.)
 	import { object, string, minLength } from 'valibot';
 	import { createForm } from '@aicacia/svelte-forms';
 

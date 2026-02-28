@@ -1,15 +1,13 @@
 <script lang="ts" module>
-	import type * as v from 'valibot';
+	import type { StandardSchemaV1 } from '@standard-schema/spec';
 
-	export interface IssuesProps<V extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>> {
-		issues: v.InferIssue<V>[];
+	export interface IssuesProps {
+		issues: StandardSchemaV1.Issue[];
 	}
 </script>
 
 <script lang="ts">
-	type V = $$Generic<v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>>;
-
-	let { issues }: IssuesProps<V> = $props();
+	let { issues }: IssuesProps = $props();
 </script>
 
 {#if issues.length > 0}

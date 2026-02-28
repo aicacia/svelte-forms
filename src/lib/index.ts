@@ -9,5 +9,7 @@ export {
 	type PrimitiveField,
 	type ArrayField,
 	type ObjectField,
-	type Field
+	type Field,
+	type SchemaIssue,
+	type BaseSchema
 } from './form.svelte';
