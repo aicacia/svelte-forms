@@ -9,10 +9,10 @@ const config = {
 
 	kit: {
 		adapter: adapter({
-			fallback: 'index.html',
+			fallback: 'index.html'
 		}),
 		paths: {
-			base: process.env.USE_BASE_PATH ? '/svelte-forms' : ''
+			base: process.env.USE_BASE_PATH ? '/svelte-headless' : ''
 		}
 	}
 };

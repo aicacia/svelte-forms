@@ -1,23 +1,5 @@
-import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { debounce } from '@aicacia/debounce';
-
-// helper to invoke the standard-schema validate function which lives under the
-// private "~standard" property according to the spec.  we define a minimal
-// interface so we don't need to cast to `any` when accessing it.
-interface WithValidate<Out> {
-	'~standard': {
-		validate: (
-			value: unknown
-		) => StandardSchemaV1.Result<Out> | Promise<StandardSchemaV1.Result<Out>>;
-	};
-}
-
-function runValidate<S extends BaseSchema>(
-	schema: S,
-	value: unknown
-): StandardSchemaV1.Result<InferOutput<S>> | Promise<StandardSchemaV1.Result<InferOutput<S>>> {
-	return (schema as unknown as WithValidate<InferOutput<S>>)['~standard'].validate(value);
-}
+import type { StandardSchemaV1 } from '@standard-schema/spec';
 
 export type FieldState = 'validating' | 'valid' | 'invalid' | 'unset' | 'set';
 
@@ -129,7 +111,7 @@ function createObjectField<V extends ObjectSchemaType>(
 			return [fieldInputs, undefined, { issues: fieldIssues }];
 		}
 
-		const result = await runValidate(schema, fieldInputs as unknown);
+		const result = await schema['~standard'].validate(fieldInputs as unknown);
 		if ('issues' in result && result.issues) {
 			state = 'invalid';
 			issues.length = 0;
@@ -218,7 +200,7 @@ function createArrayField<V extends ArraySchemaType>(
 			return [itemsInput, undefined, { issues: itemsIssues }];
 		}
 
-		const result = await runValidate(schema, itemsInput as unknown);
+		const result = await schema["~standard"].validate(itemsInput as unknown);
 		if ('issues' in result && result.issues) {
 			state = 'invalid';
 			issues.length = 0;
@@ -275,7 +257,7 @@ function createPrimitiveField<V extends BaseSchema>(
 	async function validate(): Promise<ValidationResult<V>> {
 		try {
 			state = 'validating';
-			const result = await runValidate(schema, input as unknown);
+			const result = await schema['~standard'].validate(input as unknown);
 			if ('issues' in result && result.issues) {
 				state = 'invalid';
 				output = input as InferOutput<V>;
