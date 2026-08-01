@@ -6,8 +6,13 @@ export type FieldState = 'validating' | 'valid' | 'invalid' | 'unset' | 'set';
 // schema helpers
 export type BaseSchema<Input = unknown, Output = Input> = StandardSchemaV1<Input, Output>;
 
-export type ObjectSchemaType = BaseSchema & { entries: Record<string, BaseSchema> };
-export type ArraySchemaType = BaseSchema & { item: BaseSchema };
+export type NestedSchema = BaseSchema & {
+	readonly entries?: Readonly<Record<string, NestedSchema>>;
+	readonly item?: NestedSchema;
+};
+
+export type ObjectSchemaType = BaseSchema & { readonly entries: Readonly<Record<string, NestedSchema>> };
+export type ArraySchemaType = BaseSchema & { readonly item: NestedSchema };
 
 export type InferInput<S extends BaseSchema> = StandardSchemaV1.InferInput<S>;
 export type InferOutput<S extends BaseSchema> = StandardSchemaV1.InferOutput<S>;
@@ -121,7 +126,7 @@ function createObjectField<V extends ObjectSchemaType>(
 
 		state = 'valid';
 		issues.length = 0;
-		const output = result.value as InferOutput<V>;
+		const output = 'value' in result ? (result.value as InferOutput<V>) : (undefined as InferOutput<V>);
 		return [fieldInputs, output, undefined];
 	}
 
@@ -210,7 +215,7 @@ function createArrayField<V extends ArraySchemaType>(
 
 		state = 'valid';
 		issues.length = 0;
-		const output = result.value as InferOutput<V>;
+		const output = 'value' in result ? (result.value as InferOutput<V>) : (undefined as InferOutput<V>);
 		return [itemsInput, output, undefined];
 	}
 
@@ -265,7 +270,11 @@ function createPrimitiveField<V extends BaseSchema>(
 				issues.push(...(result.issues as SchemaIssue[]));
 				return [input, undefined, { issues: [...result.issues] }];
 			} else {
-				output = result.value as InferOutput<V>;
+				if ('value' in result) {
+					output = result.value as InferOutput<V>;
+				} else {
+					output = undefined as InferOutput<V>;
+				}
 				state = 'valid';
 				issues.length = 0;
 				return [input, output, undefined];

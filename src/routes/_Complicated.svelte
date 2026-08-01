@@ -1,53 +1,69 @@
 <script lang="ts">
-	import * as v from 'valibot';
-	import { createField, createForm } from '$lib';
-	import Issues from './_Issues.svelte';
+	import * as v from "valibot";
+	import { createField, createForm } from "$lib";
+	import Issues from "./_Issues.svelte";
+
+	const takenUsernames = new Set(["ada", "admin", "root"]);
+
+	async function isUsernameUnique(username: string) {
+		await new Promise((resolve) => setTimeout(resolve, 250));
+		return !takenUsernames.has(username.trim().toLowerCase());
+	}
 
 	const addressSchema = v.object({
-		label: v.pipe(v.string(), v.nonEmpty('Label is required')),
-		street: v.pipe(v.string(), v.nonEmpty('Street is required')),
-		city: v.pipe(v.string(), v.nonEmpty('City is required')),
-		country: v.pipe(v.string(), v.nonEmpty('Country is required'))
+		label: v.pipe(v.string(), v.nonEmpty("Label is required")),
+		street: v.pipe(v.string(), v.nonEmpty("Street is required")),
+		city: v.pipe(v.string(), v.nonEmpty("City is required")),
+		country: v.pipe(v.string(), v.nonEmpty("Country is required")),
 	});
 
-	const tagSchema = v.pipe(v.string(), v.nonEmpty('Tag cannot be empty'));
+	const tagSchema = v.pipe(v.string(), v.nonEmpty("Tag cannot be empty"));
 
 	const form = createForm(
-		v.object({
-			profile: v.object({
-				name: v.pipe(v.string(), v.nonEmpty('Name is required')),
-				email: v.pipe(v.string(), v.email('Enter a valid email')),
-				role: v.pipe(v.string(), v.nonEmpty('Role is required'))
+		v.objectAsync({
+			profile: v.objectAsync({
+				name: v.pipe(v.string(), v.nonEmpty("Name is required")),
+				username: v.pipeAsync(
+					v.string(),
+					v.nonEmpty("Username is required"),
+					v.checkAsync(isUsernameUnique, "That username is already taken"),
+				),
+				email: v.pipe(v.string(), v.email("Enter a valid email")),
+				role: v.pipe(v.string(), v.nonEmpty("Role is required")),
 			}),
-			addresses: v.pipe(v.array(addressSchema), v.minLength(1, 'Add at least one address')),
-			tags: v.pipe(v.array(tagSchema), v.minLength(1, 'Add at least one tag'))
+			addresses: v.pipe(
+				v.array(addressSchema),
+				v.minLength(1, "Add at least one address"),
+			),
+			tags: v.pipe(v.array(tagSchema), v.minLength(1, "Add at least one tag")),
 		}),
 		{
 			profile: {
-				name: 'Ada Lovelace',
-				email: 'ada@example.com',
-				role: 'Engineer'
+				name: "Ada Lovelace",
+				username: "ada-l",
+				email: "ada@example.com",
+				role: "Engineer",
 			},
 			addresses: [
 				{
-					label: 'Home',
-					street: '123 Logic Gate Ave',
-					city: 'Analytica',
-					country: 'UK'
-				}
+					label: "Home",
+					street: "123 Logic Gate Ave",
+					city: "Analytica",
+					country: "UK",
+				},
 			],
-			tags: ['priority']
-		}
+			tags: ["priority"],
+		},
 	);
 
 	function addAddress() {
 		form.fields.addresses.items.push(
 			createField(addressSchema, {
-				label: '',
-				street: '',
-				city: '',
-				country: ''
-			})
+				label: "",
+				street: "",
+				city: "",
+				country: "",
+			}),
 		);
 	}
 
@@ -56,7 +72,7 @@
 	}
 
 	function addTag() {
-		form.fields.tags.items.push(createField(tagSchema, ''));
+		form.fields.tags.items.push(createField(tagSchema, ""));
 	}
 
 	function removeTag(index: number) {
@@ -100,6 +116,19 @@
 
 		<div class="flex flex-col">
 			<label class="flex flex-col gap-1">
+				Username
+				<input
+					placeholder="ada-l"
+					autocomplete="username"
+					bind:value={form.fields.profile.fields.username.value}
+				/>
+			</label>
+			<Issues issues={form.fields.profile.fields.username.issues} />
+			<p>Validation state: {form.fields.profile.fields.username.state}</p>
+		</div>
+
+		<div class="flex flex-col">
+			<label class="flex flex-col gap-1">
 				Email
 				<input
 					type="email"
@@ -130,9 +159,9 @@
 		<div class="flex items-center justify-between">
 			<h4>Addresses</h4>
 		</div>
-		{#each form.fields.addresses.items as address, index}
+		{#each form.fields.addresses.items as address, index (index)}
 			<div>
-				<p>{address.fields.label.value || 'Address'} #{index + 1}</p>
+				<p>{address.fields.label.value || "Address"} #{index + 1}</p>
 				<div class="mt-2 grid gap-4 md:grid-cols-2">
 					<label class="flex flex-col gap-1">
 						Label
@@ -142,13 +171,19 @@
 
 					<label class="flex flex-col gap-1">
 						Street
-						<input placeholder="123 Logic Gate Ave" bind:value={address.fields.street.value} />
+						<input
+							placeholder="123 Logic Gate Ave"
+							bind:value={address.fields.street.value}
+						/>
 						<Issues issues={address.fields.street.issues} />
 					</label>
 
 					<label class="flex flex-col gap-1">
 						City
-						<input placeholder="Analytica" bind:value={address.fields.city.value} />
+						<input
+							placeholder="Analytica"
+							bind:value={address.fields.city.value}
+						/>
 						<Issues issues={address.fields.city.issues} />
 					</label>
 
@@ -159,14 +194,20 @@
 					</label>
 				</div>
 				<div class="mt-2 flex justify-end">
-					<button type="button" class="btn danger" onclick={() => removeAddress(index)}>
+					<button
+						type="button"
+						class="btn danger"
+						onclick={() => removeAddress(index)}
+					>
 						Remove
 					</button>
 				</div>
 			</div>
 		{/each}
 		<div class="flex items-center justify-center">
-			<button type="button" class="btn success" onclick={addAddress}> Add Address </button>
+			<button type="button" class="btn success" onclick={addAddress}>
+				Add Address
+			</button>
 		</div>
 		<Issues issues={form.fields.addresses.issues} />
 	</section>
@@ -177,15 +218,23 @@
 		<div class="flex items-center">
 			<h4>Tags</h4>
 		</div>
-		{#each form.fields.tags.items as tag, index}
+		{#each form.fields.tags.items as tag, index (index)}
 			<div class="flex items-center gap-2">
 				<input class="flex-1" placeholder="priority" bind:value={tag.value} />
-				<button type="button" class="btn danger" onclick={() => removeTag(index)}> Remove </button>
+				<button
+					type="button"
+					class="btn danger"
+					onclick={() => removeTag(index)}
+				>
+					Remove
+				</button>
 			</div>
 			<Issues issues={tag.issues} />
 		{/each}
 		<div class="flex items-center justify-center">
-			<button type="button" class="btn success" onclick={addTag}> Add Tag </button>
+			<button type="button" class="btn success" onclick={addTag}>
+				Add Tag
+			</button>
 		</div>
 		<Issues issues={form.fields.tags.issues} />
 	</section>

@@ -12,7 +12,7 @@ const config = {
 			fallback: 'index.html'
 		}),
 		paths: {
-			base: process.env.USE_BASE_PATH ? '/svelte-headless' : ''
+			base: process.env.USE_BASE_PATH ? '/svelte-forms' : ''
 		}
 	}
 };
